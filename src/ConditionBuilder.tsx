@@ -38,6 +38,18 @@ const myFunctionAbi: conditions.base.contract.FunctionAbiProps = {
   type: 'function',
 };
 
+const ownsERC20 = new conditions.base.contract.ContractCondition({
+  method: 'balanceOf',
+  parameters: [':userAddress'],
+  standardContractType: 'ERC20',
+  contractAddress: '0x466Cb577799C39eD6C33509205a112F4E5170125',
+  chain: 80001,
+  returnValueTest: {
+    comparator: '>=',
+    value: 10 * Math.pow(10, 18),
+  },
+});
+
 const ownsNFT = new conditions.base.contract.ContractCondition({
   method: 'balanceOf',
   parameters: [':userAddress'],
@@ -46,9 +58,13 @@ const ownsNFT = new conditions.base.contract.ContractCondition({
   chain: 80001,
   returnValueTest: {
     comparator: '>=',
-    value: 2,
+    value: 1,
   },
 });
+const hasNFTandERC20 = conditions.compound.CompoundCondition.and([
+  ownsERC20,
+  ownsNFT,
+]);
 
 // const isAuditCertified = new conditions.base.contract.ContractCondition({
 //   method: 'isAppCertified',
@@ -69,7 +85,7 @@ export const ConditionBuilder = ({
 }: Props) => {
   const { library } = useEthers();
 
-  const demoCondition = JSON.stringify((condition ?? ownsNFT).toObj());
+  const demoCondition = JSON.stringify((condition ?? hasNFTandERC20).toObj());
   const [conditionString, setConditionString] = useState(demoCondition);
 
   if (!enabled || !library) {
